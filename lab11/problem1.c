@@ -18,15 +18,16 @@ typedef struct movie{
 }Movie;
 
 
-void loadFile(FILE *filePath, Movie **movies, char input[BUFFER]);
-void printAllMovies(Movie *movies);
-void printMovie(Movie movie);
+int loadFile(FILE *filePath, Movie **movies, char input[BUFFER]);
+void printAllMovies(Movie *movies, int numberOfMovies);
+void printMovie(Movie movie, int movieNumber);
 
 int main(/*int argc, char *argv[]*/void){
 	/*Declare variables*/
 	int i;
 	char input[BUFFER];
 	FILE *fp;
+	int numberOfMovies;
 
   /*Initialize the array of movies*/
 	Movie *movies = malloc(0);
@@ -35,15 +36,15 @@ int main(/*int argc, char *argv[]*/void){
 	fp = fopen("movies.txt", "r");
 
   /*Load the file*/
-	loadFile(fp, &movies, input);
+	numberOfMovies = loadFile(fp, &movies, input);
 
 	/*Close the file*/
 	fclose(fp);
 
-	printAllMovies(movies);
+	printAllMovies(movies, numberOfMovies);
 }
 
-void loadFile(FILE *filePath, Movie **movies, char input[BUFFER]){
+int loadFile(FILE *filePath, Movie **movies, char input[BUFFER]){
 	/*Declare local variables*/
 	int numberOfMovies, i;
 
@@ -53,8 +54,6 @@ void loadFile(FILE *filePath, Movie **movies, char input[BUFFER]){
 
 	/*Allocate the right amount of memory*/
 	(*movies) = realloc((*movies), sizeof(Movie) * numberOfMovies);
-
-	printf("%d", numberOfMovies);
 
 	/*Fill the structure array*/
 	for(i = 0; i < numberOfMovies; i++){
@@ -76,27 +75,29 @@ void loadFile(FILE *filePath, Movie **movies, char input[BUFFER]){
 		fgets(input, BUFFER, filePath);
 		(*movies)[i].releaseDate = atoi(input);
 	}
+	return numberOfMovies;
 }
 
 // void findMovieByName(){
 //
 // }
 
-void printAllMovies(Movie *movies){
+void printAllMovies(Movie *movies, int numberOfMovies){
 	/*Declare local variables*/
 	int i;
 
 	/*While there are still more movies print the current movie*/
-	for(i = 0; i < sizeof(movies) / sizeof(Movie); i++){
-		printMovie(movies[i]);
+	for(i = 0; i < numberOfMovies; i++){
+		printMovie(movies[i], i + 1);
 	}
 }
 
-void printMovie(Movie aMovie){
+void printMovie(Movie aMovie, int movieNumber){
+	printf("Movie %d:\n", movieNumber);
 	printf("The name of the movie is: %s\n", aMovie.name);
 	printf("This movie has the tye of: %s\n", aMovie.type);
 	printf("This movie has a rating of %d/5 stars\n", aMovie.rating);
-	printf("This movie was releasied in %d\n", aMovie.releaseDate);
+	printf("This movie was releasied in %d\n\n", aMovie.releaseDate);
 }
 
 // void sortByRating(){
