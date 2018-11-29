@@ -33,7 +33,7 @@ int main(/*int argc, char *argv[]*/void){
 	FILE *fp;
 	int numberOfMovies;
 
-  /*Initialize the array of movies*///
+  /*Initialize the array of movies*//////
 	Movie *movies = malloc(0);
 
 	/*Open the file*/
