@@ -98,7 +98,7 @@ int loadFile(FILE *filePath, Movie **movies, char input[BUFFER]){
 /*Frees the memory*/
 void freeMemory(Movie **movies){
 	/*Free the whole array*/
-	free((*movies));//test
+	free((*movies));
 }
 
 // void findMovieByName(){
