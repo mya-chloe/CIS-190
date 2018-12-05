@@ -1,0 +1,71 @@
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:12:14: error: field ‘next’ has incomplete type
+   struct hole next;
+              ^~~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:19:17: error: field ‘next’ has incomplete type
+     struct hole next;
+                 ^~~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c: In function ‘main’:
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:29:8: error: expected ‘(’ before ‘the’
+  while the user has not entered "ENOUGH"{
+        ^~~
+        (
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:29:8: error: ‘the’ undeclared (first use in this function)
+  while the user has not entered "ENOUGH"{
+        ^~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:29:8: note: each undeclared identifier is reported only once for each function it appears in
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:36:9: warning: implicit declaration of function ‘addHole’ [-Wimplicit-function-declaration]
+         addHole(holeList, color to add, number of sides, holeNum)
+         ^~~~~~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:36:27: error: ‘color’ undeclared (first use in this function)
+         addHole(holeList, color to add, number of sides, holeNum)
+                           ^~~~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:36:32: error: expected ‘)’ before ‘to’
+         addHole(holeList, color to add, number of sides, holeNum)
+                                ^~~
+                                )
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:36:66: error: expected ‘;’ before ‘while’
+         addHole(holeList, color to add, number of sides, holeNum)
+                                                                  ^
+                                                                  ;
+  while the user has not chosen option 5{
+  ~~~~~                                                            
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c: At top level:
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:65:15: error: unknown type name ‘peg’
+ void printPeg(peg * pegList, char color[], int numSides){
+               ^~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:77:13: error: unknown type name ‘peg’
+ void addpeg(peg * pegList, char color[], int numSides, int pegNum){
+             ^~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:86:22: warning: missing terminating ' character
+  set that new element's next location to null
+                      ^
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:86:22: error: missing terminating ' character
+  set that new element's next location to null
+                      ^~~~~~~~~~~~~~~~~~~~~~~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:90:29: error: expected ‘)’ before ‘to’
+ void removepeg(pegList, name to remove){
+                             ^~~
+                             )
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:95:9: warning: missing terminating ' character
+    if(it's the first element)
+         ^
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:95:9: error: missing terminating ' character
+    if(it's the first element)
+         ^~~~~~~~~~~~~~~~~~~~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:98:25: warning: character constant too long for its type
+     set the previous peg's next peg to the current peg's next peg
+                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:107:3: error: unknown type name ‘advance’
+   advance our temp peg along the list
+   ^~~~~~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:107:15: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘temp’
+   advance our temp peg along the list
+               ^~~~
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:107:15: error: unknown type name ‘temp’
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:110:34: error: expected ‘)’ before ‘name’
+ void exportFile(pegList, holeList name of file){
+                                  ^~~~~
+                                  )
+/home/mya/Documents/Programming/C/CIS 190/lab11/problem2.c:124:1: error: expected identifier or ‘(’ before ‘}’ token
+ }
+ ^

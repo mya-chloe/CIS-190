@@ -21,10 +21,15 @@ typedef struct movie{
 }Movie;
 
 /*Function stubs*/
+void menu(Movie * movies, int numberOfMovies, char input[]);
+void searchByName(Movie * movies, int numberOfMovies, char input[]);
+void printSortedMovies(Movie * movies, int numberOfMovies, char input[]);
 int loadFile(FILE *filePath, Movie **movies, char input[BUFFER]);
+void freeMemory(Movie **movies);
 void printAllMovies(Movie *movies, int numberOfMovies);
 void printMovie(Movie movie, int movieNumber);
-void freeMemory(Movie **movies);
+int compareStrings(const void * a, const void * b);
+int compareInts(const void * a, const void * b);
 
 int main(/*int argc, char *argv[]*/void){
 	/*Declare variables*/
@@ -46,10 +51,95 @@ int main(/*int argc, char *argv[]*/void){
 	fclose(fp);
 
 	/*Print the information on every movie*/
-	printAllMovies(movies, numberOfMovies);
+	menu(movies, numberOfMovies, input);
 
 	/*Free the memory*/
 	freeMemory(&movies);
+}
+
+void menu(Movie * movies, int numberOfMovies, char input[]){
+	/*Declare local variables*/
+	int selection;
+
+	/*Menu loop*/
+	do{
+		/*Get input from the user and convert it to an int*/
+		printf("Enter 1 to search for a movie, 2 to view all movies, or 3 to quit:\n");
+		fgets(input, BUFFER, stdin);
+		selection = atoi(input);
+
+		/*Perform the requested operation*/
+		switch(selection){
+			/*Search for a movie*/
+			case 1:
+				searchByName(movies, numberOfMovies, input);
+				break;
+			/*Print all the movies n a sorted order*/
+			case 2:
+				printSortedMovies(movies, numberOfMovies, input);
+				break;
+			/*Invalid input*/
+			default:
+				printf("Invalid selection");
+			/*Quit the program*/
+			case 3:
+				break;
+		}
+	}while (selection != 3);
+}
+
+void searchByName(Movie * movies, int numberOfMovies, char input[]){
+	/*Declare local variables*/
+	int i;
+
+	/*Get input from the user*/
+	printf("Enter the name of the movie you would like to find:\n");
+	fgets(input, BUFFER, stdin);
+
+	/*Search all the movies for that movie*/
+	for(i = 0; i < numberOfMovies; i++)
+		/*If name is a match for the movies name print out the movies information and return*/
+		if(!strcmp(movies[i].name, input)){
+			printMovie(movies[i], i);
+			break;
+		}
+
+	/*If the movie was not found inform the user*/
+	printf("Movie not found");
+}
+
+void printSortedMovies(Movie * movies, int numberOfMovies, char input[]){
+	/*Declare local variables*/
+	int selection;
+
+	/*Loop to ensure a valid selection was chosen*/
+	do{
+		/*Get input from the user and convert it to an int*/
+		printf("Enter 1 to view all movies by name, 2 to view all movies by rating, or 3 to cancel:\n");
+		fgets(input, BUFFER, stdin);
+		selection = atoi(input);
+
+		/*Perform the requested operation*/
+		switch(selection){
+			/*Sort by name and print all movies*/
+			case 1:
+				qsort(movies, numberOfMovies, sizeof(Movie*), compareStrings);
+				printAllMovies(movies, numberOfMovies);
+				break;
+			/*Sort by rating and print all movies*/
+			case 2:
+				qsort(movies, numberOfMovies, sizeof(Movie*), compareInts);
+				printAllMovies(movies, numberOfMovies);
+				break;
+			/*Invalid input*/
+			default:
+				selection = 0;
+				printf("Invalid selection");
+			/*Go back to the menu*/
+			case 3:
+				break;
+		}
+	}while(!selection);
 }
 
 /*Loads from file filepath to the array of structures movies*/
@@ -101,10 +191,6 @@ void freeMemory(Movie **movies){
 	free((*movies));
 }
 
-// void findMovieByName(){
-//
-// }
-
 /*Prints information on every movie*/
 void printAllMovies(Movie *movies, int numberOfMovies){
 	/*Declare local variables*/
@@ -125,11 +211,10 @@ void printMovie(Movie aMovie, int movieNumber){
 	printf("This movie was released in %d\n\n", aMovie.releaseDate);
 }
 
-// void sortByRating(){
-//
+int compareStrings(const void * a, const void * b){
+	return 0;
+}
 
-// }
-//
-// void sortByName(){
-//
-// }
+int compareInts(const void * a, const void * b){
+	return 1;
+}

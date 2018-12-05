@@ -1,18 +1,22 @@
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define MAX_NAME_LEN 25
 
 typedef struct peg{
-	color[MAX_NAME_LEN];
-    sides;
-    pegNum;
-	next hole;
+		char color[MAX_NAME_LEN];
+    int sides;
+    int pegNum;
+		struct hole next;
 }PEG;
 
 typedef struct hole{
-    color[MAX_NAME_LEN];
-    sides;
-    holeNum;
-    next hole;
+    char color[MAX_NAME_LEN];
+    int sides;
+    int holeNum;
+    struct hole next;
 }HOLE;
 
 int main(void){
@@ -58,23 +62,22 @@ int main(void){
 	}
 }
 
-void printPeg(pegList, color to search, num sides to search){
-	create temp peg pointing to pegList
-	while(temp peg != NULL && we have not found the correct peg){
-		advance our temp peg along the list
+void printPeg(peg * pegList, char color[], int numSides){
+	peg temp = pegList;
+	while(temp != NULL && (strcmp(temp.color, color) && temp.sides == numSides)){
+		temp = temp.next;
 	}
 
-	if(the peg was found)
-		print the peg's details
+	if(temp != null)
+		printf("This peg is %s and has %d sides and is number %d", temp.color, temp.sides, temp.pegNum);
 	else
-		print no peg by that name
-
+		printf("There is no %s peg with %d sides", color, numSides);
 }
 
-void addpeg(pegList, color to add, num sides to add, penNum){
-    create temp peg pointing to pegList
-    while(temp peg does not point to NULL){
-        advance our temp peg along the list
+void addpeg(peg * pegList, char color[], int numSides, int pegNum){
+    peg temp = pegList;
+    while(temp != null){
+        temp = temp.next;
     }
 
 	store the color, sides, pegNum
