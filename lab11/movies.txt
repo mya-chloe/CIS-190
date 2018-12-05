@@ -1,17 +1,17 @@
 4
-MovieOne
-TypeOne
+The Godfather
+Crime
 3
-1989
-MovieTwo
-TypeTwo
+1972
+Jaws
+Thriller
 2
-2004
-MovieThree
-TypeThree
+1975
+Black Panther
+Action
 5
-1700
-MovieFour
-TypeFour
+2018
+Casablanca
+Romance
 3
-1492
+1942
