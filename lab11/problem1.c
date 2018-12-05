@@ -95,17 +95,18 @@ void searchByName(Movie * movies, int numberOfMovies, char input[]){
 	/*Get input from the user*/
 	printf("Enter the name of the movie you would like to find:\n");
 	fgets(input, BUFFER, stdin);
+	input[strlen(input) - 1] = '\0';
 
 	/*Search all the movies for that movie*/
-	for(i = 0; i < numberOfMovies; i++)
+	for(i = 0; i < numberOfMovies; i++){
 		/*If name is a match for the movies name print out the movies information and return*/
 		if(!strcmp(movies[i].name, input)){
 			printMovie(movies[i], i);
-			break;
+			return;
 		}
-
+	}
 	/*If the movie was not found inform the user*/
-	printf("Movie not found");
+	printf("Movie not found\n");
 }
 
 void printSortedMovies(Movie * movies, int numberOfMovies, char input[]){
@@ -123,12 +124,12 @@ void printSortedMovies(Movie * movies, int numberOfMovies, char input[]){
 		switch(selection){
 			/*Sort by name and print all movies*/
 			case 1:
-				qsort(movies, numberOfMovies, sizeof(Movie*), compareStrings);
+				qsort(movies, numberOfMovies, sizeof(Movie), compareStrings);
 				printAllMovies(movies, numberOfMovies);
 				break;
 			/*Sort by rating and print all movies*/
 			case 2:
-				qsort(movies, numberOfMovies, sizeof(Movie*), compareInts);
+				qsort(movies, numberOfMovies, sizeof(Movie), compareInts);
 				printAllMovies(movies, numberOfMovies);
 				break;
 			/*Invalid input*/
@@ -212,9 +213,13 @@ void printMovie(Movie aMovie, int movieNumber){
 }
 
 int compareStrings(const void * a, const void * b){
-	return 0;
+	return strcmp((*(Movie*)a).name, (*(Movie*)b).name);
 }
 
 int compareInts(const void * a, const void * b){
-	return 1;
+	if((*(Movie*)a).rating < (*(Movie*)b).rating)
+		return -1;
+	if((*(Movie*)a).rating > (*(Movie*)b).rating)
+		return 1;
+	return 0;
 }
