@@ -45,7 +45,7 @@ void printOrder(Beer *beers, int numberOfBeers, int orderedBeers[]);
 int findBeerByID(long id, Beer *beers, int numberOfBeers);
 void searchBeerByID(char input[], Beer *beers, int numberOfBeers);
 
-int main(/*int argc, char *argv[]*/void){
+int main(void){
 	/*Declare variables*/
 	int i;
 	char input[BUFFER];
