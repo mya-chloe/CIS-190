@@ -25,54 +25,51 @@ typedef struct beer{
 	long id;
 	int quantity;
 	double price;
+  struct beer * next;
 }Beer;
 
 /*Function stubs*/
-int loadFile(FILE *filePath, Beer **beers, char input[BUFFER]);
-void freeMemory(Beer **beers);
-void printAllBeers(Beer *beers, int numberOfBeers);
+int loadFile(FILE *filePath, Beer **firstBeer, char input[BUFFER]);
+void freeMemory(Beer **firstBeer);
+void printAllBeers(Beer *firstBeer);
 void printBeer(Beer beer);
-void selectionSort(Beer * beers, int sorted, int numberOfBeers);
-int findSmallest(Beer *beers, int sorted, int numberOfBeers);
-void swap(Beer *first, Beer *second);
-void menu(char input[], Beer *beers, int numberOfBeers);
-void takeOrder(char input[], Beer *beers, int numberOfBeers);
-void makeOrder(Beer *beers, int orderedBeers[], int numberOfBeers);
-int checkIfEmpty(int orderedBeers[], int numberOfBeers);
+void menu(char input[], Beer *firstBeer, int numberOfBeers);
+void takeOrder(char input[], Beer *firstBeer, int numberOfBeers);
+void makeOrder(Beer *firstBeer, int *orderedBeers);
+int checkIfEmpty(int *orderedBeers);
 int checkInt(char input[]);
 int checkID(char input[]);
-void printOrder(Beer *beers, int numberOfBeers, int orderedBeers[]);
-int findBeerByID(long id, Beer *beers, int numberOfBeers);
-void searchBeerByID(char input[], Beer *beers, int numberOfBeers);
+void printOrder(Beer *firstBeer, int *orderedBeers);
+Beer *findBeerByID(long id, Beer *firstBeer);
+void searchBeerByID(char input[], Beer *firstBeer);
 
 int main(void){
 	/*Declare variables*/
-	int i;
+	int i, numberOfBeers;
 	char input[BUFFER];
 	FILE *fp;
-	int numberOfBeers;
 
   /*Initialize the array of beers*/
-	Beer *beers = malloc(0);
+	Beer *firstBeer = malloc(0);
 
 	/*Open the file*/
 	fp = fopen("beer.dat", "r");
 
-    /*Load the file*/
-	numberOfBeers = loadFile(fp, &beers, input);
+  /*Load the file*/
+	numberOfBeers = loadFile(fp, &firstBeer, input);
 
 	/*Close the file*/
 	fclose(fp);
 
 	/*Run the menu*/
-	menu(input, beers, numberOfBeers);
+	menu(input, firstBeer, numberOfBeers);
 
 	/*Free the memory*/
-	freeMemory(&beers);
+	freeMemory(&firstBeer);
 }
 
 /*Loads from file filepath to the array of structures beers*/
-int loadFile(FILE *filePath, Beer **beers, char input[BUFFER]){
+int loadFile(FILE *filePath, Beer *firstBeer, char input[BUFFER]){
 	/*Declare local variables*/
 	int numberOfBeers, i;
 
@@ -80,30 +77,69 @@ int loadFile(FILE *filePath, Beer **beers, char input[BUFFER]){
 	fgets(input, BUFFER, filePath);
 	numberOfBeers = atoi(input);
 
-	/*Allocate the right amount of memory*/
-	(*beers) = realloc((*beers), sizeof(Beer) * numberOfBeers);
+  Beer *trav;
 
 	/*Fill the structure array*/
 	for(i = 0; i < numberOfBeers; i++){
-		/*Get and copy the name of the beer*/
+    /*If this is the first beer*/
+    if(!i){
+      /*Create the new beer directly at head*/
+      Beer *newBeer = malloc(sizeof(Beer));
+  		/*Get the name*/
+  		fgets(input, BUFFER, filePath);
+  		/*Strip the newline*/
+  		input[strlen(input) - 1] = 0;
+  		/*Copy it into (*firstBeer)[i].name*/
+  		strcpy(firstBeer->name, input);
+
+      /*Get the id of the beer and set id to this id*/
+  		fgets(input, BUFFER, filePath);
+  		firstBeer->id = atol(input);
+
+  		/*Get the rating and set the beers rating to it*/
+  		fgets(input, BUFFER, filePath);
+  		firstBeer->quantity = atoi(input);
+
+  		/*Get the releaseDate and set the beers rating to it*/
+  		fgets(input, BUFFER, filePath);
+  		firstBeer->price = atof(input);
+      firstBeer->next = NULL;
+      continue;
+    }
+
+    /*Create the new beer*/
+    Beer *newBeer = malloc(sizeof(Beer));
 		/*Get the name*/
 		fgets(input, BUFFER, filePath);
 		/*Strip the newline*/
 		input[strlen(input) - 1] = 0;
-		/*Copy it into (*beers)[i].name*/
-		strcpy((*beers)[i].name, input);
+		/*Copy it into (*firstBeer)[i].name*/
+		strcpy(newBeer->name, input);
 
 		/*Get the id of the beer and set id to this id*/
 		fgets(input, BUFFER, filePath);
-		(*beers)[i].id = atol(input);
+		newBeer.id = atol(input);
 
 		/*Get the rating and set the beers rating to it*/
 		fgets(input, BUFFER, filePath);
-		(*beers)[i].quantity = atoi(input);
+		newBeer.quantity = atoi(input);
 
 		/*Get the releaseDate and set the beers rating to it*/
 		fgets(input, BUFFER, filePath);
-		(*beers)[i].price = atof(input);
+		newBeer.price = atof(input);
+
+
+    /*set trav to the beginning of the list*/
+    trav = firstBeer;
+    /*Keep going until the point the new node should be inserted is reached*/
+    while(trav->next != NULL && trav->next->price < newBeer->price){
+      trav = trav->next;
+    }
+
+    /*Add the beer to the list*/
+    newBeer->next = trav->next;
+    trav->next = newBeer;
+
 	}
 
 	/*Return the number of beers for use in iterating through the full array*/
@@ -111,19 +147,30 @@ int loadFile(FILE *filePath, Beer **beers, char input[BUFFER]){
 }
 
 /*Frees the memory*/
-void freeMemory(Beer **beers){
-	/*Free the whole array*/
-	free((*beers));
+void freeMemory(Beer **firstBeer){
+	/*Declare local variables*/
+	Beer *tempBeer;
+	/*Delete all the pegs*/
+	while(*firstBeer != NULL){
+		tempBeer = *firstBeer;
+		*firstBeer = (*firstBeer)->next;
+		free(tempBeer);
+	}
+	/*Free the head node*/
+	free(*firstBeer);
+
 }
 
 /*Prints information on every beer*/
-void printAllBeers(Beer *beers, int numberOfBeers){
+void printAllBeers(Beer *firstBeer){
 	/*Declare local variables*/
 	int i;
 
+  Beer *temp = firstBeer;
+
 	/*While there are still more beers print the current beer*/
-	for(i = 0; i < numberOfBeers; i++){
-		printBeer(beers[i]);
+	while(temp != NULL)){
+		printBeer(*temp);
 	}
 }
 
@@ -135,42 +182,7 @@ void printBeer(Beer aBeer){
 	printf("This beer has a cost of $%.2lf\n\n", aBeer.price);
 }
 
-/*Recurssive implementation of a selection sort*/
-void selectionSort(Beer * beers, int sorted, int numberOfBeers){
-    /*Base case: The remaining elements to be sorted have a length of 1 or less*/
-    if(sorted == (numberOfBeers - 1))
-        return;
-
-		printf("%d%d", sorted, findSmallest(beers, sorted, numberOfBeers));
-    /*Swap the smallest number with the first index that still needs to be sorted*/
-    swap(beers + sorted, beers + findSmallest(beers, sorted, numberOfBeers));
-
-    /*Sort the rest of the array*/
-    selectionSort(beers, sorted + 1, numberOfBeers);
-}
-
-/*Finds the index of the beer with the smallest price*/
-int findSmallest(Beer *beers, int sorted, int numberOfBeers){
-    /*Declare local variables*/
-    int i, currentSmallest = sorted;
-
-    /*Loop through the remaining beers looking for the smallest price*/
-    for(i = sorted; i < numberOfBeers; i++)
-        if(beers[i].price < beers[currentSmallest].price)
-            currentSmallest = i;
-
-    /*Return the index of the beer with the smallest price*/
-    return currentSmallest;
-}
-
-/*Swaps the positions of first and second using tempBeer for temporary storage*/
-void swap(Beer *first, Beer *second){
-     Beer tempBeer = *second;
-     *second = *first;
-     *first = tempBeer;
-}
-
-void menu(char input[], Beer *beers, int numberOfBeers){
+void menu(char input[], Beer *firstBeer, int numberOfBeers){
 	/*Declare local variables*/
 	int test = 0;
 	while(test != 4){
@@ -184,18 +196,17 @@ void menu(char input[], Beer *beers, int numberOfBeers){
 		switch (test = atoi(input)){
 			/*If the user wanted to search for a beer call findBeerByID then break*/
 			case 1:
-				searchBeerByID(input, beers, numberOfBeers);
+				searchBeerByID(input, firstBeer);
 				break;
 
 			/*If the user wanted to find information on all beers sort the array then print information on all the beers*/
 			case 2:
-				selectionSort(beers, 0, numberOfBeers);
-				printAllBeers(beers, numberOfBeers);
+				printAllBeers(firstBeer);
 				break;
 
 			/*If the user wanted to place an order call makeOrder*/
 			case 3:
-				takeOrder(input, beers, numberOfBeers);
+				takeOrder(input, firstBeer, numberOfBeers);
 				break;
 
 			/*If the user chose to quit do nothing*/
@@ -211,15 +222,16 @@ void menu(char input[], Beer *beers, int numberOfBeers){
 }
 
 /*Gets an order from the user*/
-void takeOrder(char input[], Beer *beers, int numberOfBeers){
+void takeOrder(char input[], Beer *firstBeer, int numberOfBeers){
 	/*Declare local variables*/
 	int orderedBeers[numberOfBeers];
 	int finished = 1;
 	int quantity = 0;
 	int integerTest = 1;
-	long beerIDIndex;\
+	long beerIDIndex;
 	int firstOrder = 1;
 	int i;
+  Beer *temp;
 
 	/*Zero out orderedBeers*/
 	for(i = 0; i < numberOfBeers; i++){
@@ -249,9 +261,9 @@ void takeOrder(char input[], Beer *beers, int numberOfBeers){
 
 				/*If the user entered an integer try and add the beer by ID*/
 				if(checkID(input)){
-					beerIDIndex = findBeerByID(atol(input), beers, numberOfBeers);
-					if(beerIDIndex){
-						if(beers[beerIDIndex - 1].quantity > 0){
+					temp = findBeerByID(atol(input), firstBeer, &beerIDIndex);
+					if(temp != NULL){
+						if(temp->quantity > 0){
 							printf("This beer costs $%.2lf per unit and has %d units remaining\n", beers[beerIDIndex - 1].price, beers[beerIDIndex - 1].quantity);
 							printf("Please enter the number of beers you would like to order\nEnter a number less than one to remove this beer from your order\n");
 							/*Get input from the user verifying that it is an integer*/
@@ -266,21 +278,21 @@ void takeOrder(char input[], Beer *beers, int numberOfBeers){
 
 							if(quantity > 0){
 								/*If there is enough stock left to fill the order*/
-								if(beers[beerIDIndex - 1].quantity >= quantity){
+								if(temp->quantity >= quantity){
 									/*Add this beer to the array of ordered beers*/
 									orderedBeers[beerIDIndex - 1] = atoi(input);
 								}else{
 									printf("We only have %d units of that beer left in stock. Please enter 1 to order all remaining units or anything else to not order this type of beer", beers[beerIDIndex - 1].quantity);
 									fgets(input, BUFFER, stdin);
 									if(atoi(input) == 1)
-										orderedBeers[beerIDIndex - 1] = beers[beerIDIndex - 1].quantity;
+										orderedBeers[beerIDIndex - 1] = temp->quantity;
 								}
 							}else{
 								printf("This beer has been removed from your order\n");
 								orderedBeers[beerIDIndex - 1] = 0;
 							}
 						}else{
-							printf("%s is out of stock\n", beers[beerIDIndex].name);
+							printf("%s is out of stock\n", temp->name);
 						}
 					}else{
 						printf("We do not have any beer with the entered index");
@@ -309,7 +321,7 @@ void takeOrder(char input[], Beer *beers, int numberOfBeers){
 				/*If the order is confirmed make the order*/
 				if(atoi(input) == 1){
 					printf("Order confirmed");
-					makeOrder(beers, orderedBeers, numberOfBeers);
+					makeOrder(firstBeer, orderedBeers, numberOfBeers);
 				}
 				/*Otherwise ensure the loops will continue*/
 				else{
@@ -336,13 +348,16 @@ int checkIfEmpty(int orderedBeers[], int numberOfBeers){
 
 
 /*Removes the ordered beers from the inventory*/
-void makeOrder(Beer *beers, int orderedBeers[], int numberOfBeers){
+void makeOrder(Beer *firstBeer, int orderedBeers[], int numberOfBeers){
 	/*Declare local variables*/
 	int i;
 
+  Beer *temp = firstBeer;
+
 	/*Remove the beers*/
 	for(i = 0; i < numberOfBeers; i++){
-		beers[i].quantity -=orderedBeers[i];
+		temp->quantity -=orderedBeers[i];
+    temp = temp->next;
 	}
 }
 
@@ -380,10 +395,11 @@ int checkID(char input[]){
 }
 
 /*Prints an invoice*/
-void printOrder(Beer *beers, int numberOfBeers, int orderedBeers[]){
+void printOrder(Beer *firstBeer, int numberOfBeers, int orderedBeers[]){
 	/*Declare local variables*/
 	int i;
 	double runningTotal;
+  Beer *temp = firstBeer;
 
 	/*Prints out a header for the invoice*/
 	printf("Beer\t\tQuantity Ordered\tPrice Per Unit\t\tSubtotal\n");
@@ -391,9 +407,10 @@ void printOrder(Beer *beers, int numberOfBeers, int orderedBeers[]){
 	/*Print out each beers information*/
 	for(i = 0; i < numberOfBeers; i++){
 		if(orderedBeers[i]){
-			printf("%07ld\t\t%d\t\t\t%.2lf\t\t\t%.2lf\n", beers[i].id, orderedBeers[i], beers[i].price, orderedBeers[i] * beers[i].price);
-			runningTotal += orderedBeers[i] * beers[i].price;
+			printf("%07ld\t\t%d\t\t\t%.2lf\t\t\t%.2lf\n", temp->id, orderedBeers[i], temp->price, orderedBeers[i] * temp->price);
+			runningTotal += orderedBeers[i] * temp->price;
 		}
+    temp = temp->next;
 	}
 	/*Print out the total*/
 	printf("\t\t\t\t\t\t\t\tTotal\n");
@@ -401,24 +418,23 @@ void printOrder(Beer *beers, int numberOfBeers, int orderedBeers[]){
 }
 
 /*Returns the index location of a beer in the array of beers + 1 or 0 if no beer with that id exists*/
-int findBeerByID(long id, Beer *beers, int numberOfBeers){
+Beer * findBeerByID(long id, Beer *firstBeer, int numberOfBeers){
 	/*Declare local variables*/
 	int i;
 
-	/*Check every beer to see if it's ID is a match for the id being checked for*/
-	for(i = 0; i < numberOfBeers; i++){
-		if(beers[i].id == id)
-			/*Return a true value corresponding to the index*/
-			return i+1;
-	}
+	Beer *temp = firstBeer;
 
-	/*Return false*/
-	return 0;
+  while(temp != NULL && temp->id != id){
+    temp = temp->next;
+  }
+  return temp;
 }
 
-void searchBeerByID(char input[], Beer *beers, int numberOfBeers){
+void searchBeerByID(char input[], Beer *firstBeer, int numberOfBeers){
 	/*Declare local variables*/
 	int test;
+
+  Beer *temp;
 
 	/*Get user input*/
 	do{
@@ -428,8 +444,9 @@ void searchBeerByID(char input[], Beer *beers, int numberOfBeers){
 			printf("Please enter an integer number");
 	}while(test);
 
-	if(test = findBeerByID(atol(input), beers, numberOfBeers))
-		printBeer(beers[test - 1]);
+  temp = findBeerByID(atol(input), beers, numberOfBeers);
+	if(temp != NULL)
+		printBeer(*temp);
 	else{
 		printf("We do not have any beers with that ID number");
 	}
