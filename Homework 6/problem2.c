@@ -1,257 +1,437 @@
 /*Nathan Burdzel
- *CIS 190
- *Homework 5
+ *11/28/18
+ *Homework 6
  *Problem 1
- *11/27/18
- *Note: In case you were not informed I got an extension from Professor Valova because I needed to reinstall my OS and lost all of my files on sunday.
+ *Beer Inventory
+ *Keeps track of the inventory of a beer company using an array of structures
  */
 
-/********************Preprocessor directives*********************/
-#include <stdio.h>
+/*Preprocessor directives*/
 #include <stdlib.h>
-#include <time.h>
-
+#include <stdio.h>
+#include <string.h>
 
 /*Defined constants*/
-/*Jagged array definitions*/
-#define NUMBER_OF_ROWS 5
-#define NUMBER_OF_ELEMENTS 30
-#define ELEMENTS_IN_FIRST 10
-#define ELEMENTS_IN_SECOND 5
-#define ELEMENTS_IN_THIRD 2
-#define ELEMENTS_IN_FOURTH 7
-#define ELEMENTS_IN_FIFTH 6
-#define LONGEST_ROW 10
+#define BUFFER 256
 
-/*Random number  generation definitions*/
-#define MIN_FLOAT 0
-#define MAX_FLOAT 100
+/*Integer checking constants*/
+#define MINUS 45
+#define MIN_INT 48
+#define MAX_INT 57
 
-/**************Function stubs*********************/
-void generateFloats(float floats[NUMBER_OF_ELEMENTS]);
-float generateFloat();
-void allocateMemory(float *** jaggedArray, int elementsInRow[NUMBER_OF_ROWS]);
-void freeMemory(float *** jaggedArray);
-void populateArray(float floats[], float *** jaggedArray, int elementsInRow[NUMBER_OF_ROWS]);
-void sortArray(float ** jaggedArray, int elementsInRow[NUMBER_OF_ROWS]);
-void quickSort(int index, int elementsInRow[NUMBER_OF_ROWS], float ** jaggedArray, int left, int right);
-int partition(int index, int left, int right, int elementsInRow[NUMBER_OF_ROWS], float ** jaggedArray);
-void insertionSort(int index, int elementsInRow[NUMBER_OF_ROWS], float ** jaggedArray);
-void swap(float * first, float * second);
-void printArray(float ** jaggedArray, int elementsInRow[NUMBER_OF_ROWS]);
+/*Structures*/
+typedef struct beer{
+	char name[BUFFER];
+	long id;
+	int quantity;
+	double price;
+}Beer;
 
-/*********************Main method**************************/
+/*Function stubs*/
+int loadFile(FILE *filePath, Beer **beers, char input[BUFFER]);
+void freeMemory(Beer **beers);
+void printAllBeers(Beer *beers, int numberOfBeers);
+void printBeer(Beer beer);
+void selectionSort(Beer * beers, int sorted, int numberOfBeers);
+int findSmallest(Beer *beers, int sorted, int numberOfBeers);
+void swap(Beer *first, Beer *second);
+void menu(char input[], Beer *beers, int numberOfBeers);
+void takeOrder(char input[], Beer *beers, int numberOfBeers);
+void makeOrder(Beer *beers, int orderedBeers[], int numberOfBeers);
+int checkIfEmpty(int orderedBeers[], int numberOfBeers);
+int checkInt(char input[]);
+int checkID(char input[]);
+void printOrder(Beer *beers, int numberOfBeers, int orderedBeers[]);
+int findBeerByID(long id, Beer *beers, int numberOfBeers);
+void searchBeerByID(char input[], Beer *beers, int numberOfBeers);
+
 int main(void){
-  /****Declare variables*********/
-  float ** jaggedArray;
-  float floats[NUMBER_OF_ELEMENTS];
-  int elementsInRow[NUMBER_OF_ROWS] = {ELEMENTS_IN_FIRST, ELEMENTS_IN_SECOND, ELEMENTS_IN_THIRD, ELEMENTS_IN_FOURTH, ELEMENTS_IN_FIFTH};
+	/*Declare variables*/
+	int i;
+	char input[BUFFER];
+	FILE *fp;
+	int numberOfBeers;
 
-  /*Seed the random number generator*/
-  srand(time(0));
+  /*Initialize the array of beers*/
+	Beer *beers = malloc(0);
 
-  /*Generate the random floats*/
-  generateFloats(floats);
+	/*Open the file*/
+	fp = fopen("beer.dat", "r");
 
-  /*Allocate the memory for the jagged array*/
-  allocateMemory(&jaggedArray, elementsInRow);
+    /*Load the file*/
+	numberOfBeers = loadFile(fp, &beers, input);
 
-  /*Assign values to the memory*/
-  populateArray(floats, &jaggedArray, elementsInRow);
+	/*Close the file*/
+	fclose(fp);
 
-  /*Apply the sorts*/
-  sortArray(jaggedArray, elementsInRow);
+	/*Run the menu*/
+	menu(input, beers, numberOfBeers);
 
-  /*Print the results*/
-  printArray(jaggedArray, elementsInRow);
-
-  /*Free the memory*/
-  freeMemory(&jaggedArray);
-
-  return 0;
+	/*Free the memory*/
+	freeMemory(&beers);
 }
 
-/*Populates array with random floating point numbers*/
-void generateFloats(float floats[NUMBER_OF_ELEMENTS]){
-  /*Declare local variables*/
-  int i;
+/*Loads from file filepath to the array of structures beers*/
+int loadFile(FILE *filePath, Beer **beers, char input[BUFFER]){
+	/*Declare local variables*/
+	int numberOfBeers, i;
 
-  /*For every element in the array*/
-  for(i = 0; i < NUMBER_OF_ELEMENTS; i++){
-    /*Assign that element to be a random float*/
-    floats[i] = generateFloat();
-  }
+	/*Retrieve the number of beers from the file*/
+	fgets(input, BUFFER, filePath);
+	numberOfBeers = atoi(input);
+
+	/*Allocate the right amount of memory*/
+	(*beers) = realloc((*beers), sizeof(Beer) * numberOfBeers);
+
+	/*Fill the structure array*/
+	for(i = 0; i < numberOfBeers; i++){
+		/*Get and copy the name of the beer*/
+		/*Get the name*/
+		fgets(input, BUFFER, filePath);
+		/*Strip the newline*/
+		input[strlen(input) - 1] = 0;
+		/*Copy it into (*beers)[i].name*/
+		strcpy((*beers)[i].name, input);
+
+		/*Get the id of the beer and set id to this id*/
+		fgets(input, BUFFER, filePath);
+		(*beers)[i].id = atol(input);
+
+		/*Get the rating and set the beers rating to it*/
+		fgets(input, BUFFER, filePath);
+		(*beers)[i].quantity = atoi(input);
+
+		/*Get the releaseDate and set the beers rating to it*/
+		fgets(input, BUFFER, filePath);
+		(*beers)[i].price = atof(input);
+	}
+
+	/*Return the number of beers for use in iterating through the full array*/
+	return numberOfBeers;
 }
 
-/*Generates a single floating point number between MIN_FLOAT and MAX_FLOAT*/
-float generateFloat(){
-  return (float) MIN_FLOAT + ((float) rand() / ((float) RAND_MAX / (float) MAX_FLOAT));
+/*Frees the memory*/
+void freeMemory(Beer **beers){
+	/*Free the whole array*/
+	free((*beers));
 }
 
-/*Allocates memory for the jagged array described by the defined constants*/
-void allocateMemory(float *** jaggedArray, int elementsInRow[NUMBER_OF_ROWS]){
-  /*Declare local variables*/
-  int i;
-  /*Create an element for each row*/
-  *jaggedArray = malloc(sizeof(float*) * NUMBER_OF_ROWS);
-  /*Set each row to be the full size*/
-  for (i = 0; i < NUMBER_OF_ROWS; i++){
-    (*jaggedArray)[i] = malloc(sizeof(float) * elementsInRow[i]);
-  }
+/*Prints information on every beer*/
+void printAllBeers(Beer *beers, int numberOfBeers){
+	/*Declare local variables*/
+	int i;
+
+	/*While there are still more beers print the current beer*/
+	for(i = 0; i < numberOfBeers; i++){
+		printBeer(beers[i]);
+	}
 }
 
-/*Frees the jaggedArray*/
-void freeMemory(float *** jaggedArray){
-  /*Declare local variables*/
-  int i;
-
-  /*Free each row individually*/
-  for(i = 0; i < NUMBER_OF_ROWS; i++){
-    free((*jaggedArray)[i]);
-  }
-
-  /*Free the full array*/
-  free(*jaggedArray);
+/*Prints the information on a single beer*/
+void printBeer(Beer aBeer){
+	printf("The name of this beer is: %s\n", aBeer.name);
+	printf("This beer has an id of: %07ld\n", aBeer.id);
+	printf("This beer has %d units in stock\n", aBeer.quantity);
+	printf("This beer has a cost of $%.2lf\n\n", aBeer.price);
 }
 
-/*Populates the array with the random floats*/
-void populateArray(float floats[], float *** jaggedArray, int elementsInRow[NUMBER_OF_ROWS]){
-  /*Declare local variables*/
-  int i, j, index = 0;
+/*Recurssive implementation of a selection sort*/
+void selectionSort(Beer * beers, int sorted, int numberOfBeers){
+    /*Base case: The remaining elements to be sorted have a length of 1 or less*/
+    if(sorted == (numberOfBeers - 1))
+        return;
 
-  /*Loop through all of the positions in the jaggedArray*/
-  for(i = 0; i < NUMBER_OF_ROWS; i++){
-    for(j = 0; j < elementsInRow[i]; j++){
-      /*Assign the element to the float at the current index then increment index*/
-      (*jaggedArray)[i][j] = floats[index];
-      index++;
-    }
-  }
+		printf("%d%d", sorted, findSmallest(beers, sorted, numberOfBeers));
+    /*Swap the smallest number with the first index that still needs to be sorted*/
+    swap(beers + sorted, beers + findSmallest(beers, sorted, numberOfBeers));
+
+    /*Sort the rest of the array*/
+    selectionSort(beers, sorted + 1, numberOfBeers);
 }
 
-/*Sorts the array according to the provided rules*/
-void sortArray(float ** jaggedArray, int elementsInRow[NUMBER_OF_ROWS]){
-  /*Declare local variables*/
-  int i;
-
-  /*For every column in the jaggedArray*/
-  for(i = 0; i < LONGEST_ROW; i++){
-    /*If it is an odd numbered row do an insertion sort*/
-    if(i % 2){
-      insertionSort(i, elementsInRow, jaggedArray);
-    }
-    /*Otherwise do a quick sort*/
-    else{
-        quickSort(i, elementsInRow, jaggedArray, 0, NUMBER_OF_ROWS - 1);
-    }
-  }
-}
-
-/*Recurssively sorts element index of each array using quick sort via partitioning*/
-void quickSort(int index, int elementsInRow[NUMBER_OF_ROWS], float ** jaggedArray, int left, int right){
-   /*Declare variables*/
-   int pivot;
-
-   /*If the partition is too small to partition again return*/
-   if(right - left <= 0){
-       return;
-   }
-
-   /*Partition the array*/
-   pivot = partition(index, left, right, elementsInRow, jaggedArray);
-   /*Sort the left*/
-   quickSort(index, elementsInRow, jaggedArray, left, pivot - 1);
-   /*Then the right*/
-   quickSort(index, elementsInRow, jaggedArray, pivot + 1, right);
-
-  return;
-}
-
-/*Recurssively splits the array so that all values less than jaggedArray[pivotIndex][index] are before it in the table, and all greater are after it*/
-int partition(int index, int left, int right, int elementsInRow[NUMBER_OF_ROWS], float ** jaggedArray){
+/*Finds the index of the beer with the smallest price*/
+int findSmallest(Beer *beers, int sorted, int numberOfBeers){
     /*Declare local variables*/
-    int leftPointer = left, rightPointer;
-    int pivot = right;
+    int i, currentSmallest = sorted;
 
-    /*Adjust pivot to ensure that it is within the bounds of an array*/
-    while(elementsInRow[pivot] <= index){
-        pivot--;
-        /*If pivot made it all the way to the left pointer return it*/
-        if(pivot == left)
-            return pivot;
-    }
-    /*Set rightPointer to be the last element before pivot*/
-    rightPointer = pivot - 1;
-    
-    /*Infinite loop to be broken out of inside*/
-    while(1){
-        /*While leftPointer corresponds to an element outside of the array or corresponds to a value less than the pivot increment it*/
-        while(elementsInRow[leftPointer] <= index || jaggedArray[leftPointer][index] < jaggedArray[pivot][index])
-             leftPointer++;
-        /*While rightPointer corresponds to an element outside of the array or corresponds to a value greater than the pivot decrement it*/
-        while(elementsInRow[rightPointer] <= index || (rightPointer > 0 && jaggedArray[rightPointer][index] >= jaggedArray[pivot][index])){
-             rightPointer--;
-        }
-        /*If leftPointer is on the wrong side of rightPointer*/
-        if(leftPointer >= rightPointer){
-            break;
-        }
-        /*Otherwise swap the positions with an index of leftPointer and rightPointer*/
-        else
-            swap(jaggedArray[leftPointer] + index, jaggedArray[rightPointer] + index);
-    }
-    /*If the left pointer is within bounds*/
-    if(elementsInRow[leftPointer] > index){
-        /*Swap the positions of the elements at pivot and leftPointer and return the new position of the pivot*/
-        swap(jaggedArray[leftPointer] + index, jaggedArray[pivot] + index);
-        return leftPointer;
-    }
+    /*Loop through the remaining beers looking for the smallest price*/
+    for(i = sorted; i < numberOfBeers; i++)
+        if(beers[i].price < beers[currentSmallest].price)
+            currentSmallest = i;
+
+    /*Return the index of the beer with the smallest price*/
+    return currentSmallest;
 }
 
-/*Non-Recurssively sorts element index of each array using insertion sort*/
-void insertionSort(int index, int elementsInRow[NUMBER_OF_ROWS], float ** jaggedArray){
-  int i, j;
-  float *min;
-  /*For every row in the array except the last*/
-  for(i = 0; i < NUMBER_OF_ROWS; i++){
-    /*If that row is not already outside of bounds*/
-    if(elementsInRow[i] > index){
-      /*Find the lowest number*/
-      /*For every remaining row in the array*/
-      for(j = i; j < NUMBER_OF_ROWS; j++){
-          /*If this row is in bounds*/
-          if(elementsInRow[j] > index){
-            /*If this is the first element being checked or it is smaller than the last value checked set min to the memory location of jaggedArray[i][j]*/
-            if(i == j || (jaggedArray[j][index] < *min)){
-                min = jaggedArray[j] + index;
-            }
-          }
-        }
-        /*Swap the element at index in jaggedArray[i] with the smallest value found*/
-        swap(jaggedArray[i] + index, min);
-    }
-  }
+/*Swaps the positions of first and second using tempBeer for temporary storage*/
+void swap(Beer *first, Beer *second){
+     Beer tempBeer = *second;
+     *second = *first;
+     *first = tempBeer;
 }
 
-/*Swaps two values using temp as an auxillary value*/
-void swap(float * first, float * second){
-    float temp = *first;
-    *first = *second;
-    *second = temp;
+void menu(char input[], Beer *beers, int numberOfBeers){
+	/*Declare local variables*/
+	int test = 0;
+	while(test != 4){
+		/*Print out a menu for the user*/
+		printf("\nWhat would you like to do?\n1: Search for a beer by it's ID number\n2: View information on all beers ordered by price\n3: Place an order\n4: Quit the program\n");
+
+		/*Get user input*/
+		fgets(input, BUFFER, stdin);
+
+		/*Perform the requested operation*/
+		switch (test = atoi(input)){
+			/*If the user wanted to search for a beer call findBeerByID then break*/
+			case 1:
+				searchBeerByID(input, beers, numberOfBeers);
+				break;
+
+			/*If the user wanted to find information on all beers sort the array then print information on all the beers*/
+			case 2:
+				selectionSort(beers, 0, numberOfBeers);
+				printAllBeers(beers, numberOfBeers);
+				break;
+
+			/*If the user wanted to place an order call makeOrder*/
+			case 3:
+				takeOrder(input, beers, numberOfBeers);
+				break;
+
+			/*If the user chose to quit do nothing*/
+			case 4:
+				break;
+
+			/*If the user entered bad input then print out a correction mesage*/
+			default:
+				printf("Please enter an integer between 1 and 4");
+				break;
+		}
+	}
 }
 
-/*Prints out every value in the array*/
-void printArray(float ** jaggedArray, int elementsInRow[NUMBER_OF_ROWS]){
-  /*Declare local variables*/
-  int i, j;
+/*Gets an order from the user*/
+void takeOrder(char input[], Beer *beers, int numberOfBeers){
+	/*Declare local variables*/
+	int orderedBeers[numberOfBeers];
+	int finished = 1;
+	int quantity = 0;
+	int integerTest = 1;
+	long beerIDIndex;\
+	int firstOrder = 1;
+	int i;
 
-  /*Loop through all of the positions in the jaggedArray*/
-  for(i = 0; i < NUMBER_OF_ROWS; i++){
-    for(j = 0; j < elementsInRow[i]; j++){
-      /*Assign the element to the float at the current index then increment index*/
-      printf("%f ", jaggedArray[i][j]);
-    }
-    /*End each line with a newline*/
-    printf("\n");
-  }
+	/*Zero out orderedBeers*/
+	for(i = 0; i < numberOfBeers; i++){
+		orderedBeers[i] = 0;
+	}
+
+	/*Continue looping as long as the user wants to add more beer to their order*/
+	while(finished == 1){
+		/*If this is not the first order get find out if the user wants another item*/
+		if(!firstOrder){
+			printf("Please enter 1 to get another item or anything else to finish your order:\n");
+			fgets(input, BUFFER, stdin);
+			finished = atoi(input);
+		}
+		else{
+			firstOrder = 0;
+			finished = 1;
+		}
+		/*If the user wanted to add a beer*/
+		if(finished == 1){
+			/*Keep on attempting to add beer until the user asks for a valid beer to be added*/
+			do{
+				/*Get user input and strip the newline character*/
+				printf("Please enter the ID of the beer you would like to order,\nEnter the id of a beer you already added to your order to change your order\n");
+				fgets(input, BUFFER, stdin);
+				input[strlen(input) - 1] = 0;
+
+				/*If the user entered an integer try and add the beer by ID*/
+				if(checkID(input)){
+					beerIDIndex = findBeerByID(atol(input), beers, numberOfBeers);
+					if(beerIDIndex){
+						if(beers[beerIDIndex - 1].quantity > 0){
+							printf("This beer costs $%.2lf per unit and has %d units remaining\n", beers[beerIDIndex - 1].price, beers[beerIDIndex - 1].quantity);
+							printf("Please enter the number of beers you would like to order\nEnter a number less than one to remove this beer from your order\n");
+							/*Get input from the user verifying that it is an integer*/
+							do{
+								fgets(input, BUFFER, stdin);
+								/*If it is not an integer print out a correction statement*/
+								if(integerTest = (checkInt(input)))
+									printf("Please enter an integer number\n");
+							}while(integerTest);
+
+							quantity = atoi(input);
+
+							if(quantity > 0){
+								/*If there is enough stock left to fill the order*/
+								if(beers[beerIDIndex - 1].quantity >= quantity){
+									/*Add this beer to the array of ordered beers*/
+									orderedBeers[beerIDIndex - 1] = atoi(input);
+								}else{
+									printf("We only have %d units of that beer left in stock. Please enter 1 to order all remaining units or anything else to not order this type of beer", beers[beerIDIndex - 1].quantity);
+									fgets(input, BUFFER, stdin);
+									if(atoi(input) == 1)
+										orderedBeers[beerIDIndex - 1] = beers[beerIDIndex - 1].quantity;
+								}
+							}else{
+								printf("This beer has been removed from your order\n");
+								orderedBeers[beerIDIndex - 1] = 0;
+							}
+						}else{
+							printf("%s is out of stock\n", beers[beerIDIndex].name);
+						}
+					}else{
+						printf("We do not have any beer with the entered index");
+					}
+				}
+				else{
+					printf("Please enter a seven digit id");
+				}
+			}while(!beerIDIndex);
+		}
+		/*If the user doesn't want to add more beer get an order confirmation*/
+		else{
+			/*If the list is empty do not allow the user to check out*/
+			if(checkIfEmpty(orderedBeers, numberOfBeers)){
+				printf("You have no beers in your order\n");
+				finished = 1;
+			}
+			/*Otherwise get the order confirmation*/
+			else{
+				/*Print out their current invoice*/
+				printf("Here is your current order:\n");
+				printOrder(beers, numberOfBeers, orderedBeers);
+				/*Get confirmation on the order*/
+				printf("Please enter 1 to confirm your order or anything else to edit your order:\n");
+				fgets(input, BUFFER, stdin);
+				/*If the order is confirmed make the order*/
+				if(atoi(input) == 1){
+					printf("Order confirmed");
+					makeOrder(beers, orderedBeers, numberOfBeers);
+				}
+				/*Otherwise ensure the loops will continue*/
+				else{
+					finished = 1;
+				}
+			}
+		}
+	}
+}
+
+/*Return 1 if the array is empty, or 0 if it isn't*/
+int checkIfEmpty(int orderedBeers[], int numberOfBeers){
+	/*declare local variables*/
+	int i;
+
+	/*If any element is nonzero return 0*/
+	for(i = 0; i < numberOfBeers; i++)
+		if(orderedBeers[i])
+			return 0;
+
+	/*If no elements were nonzero return 1*/
+	return 1;
+}
+
+
+/*Removes the ordered beers from the inventory*/
+void makeOrder(Beer *beers, int orderedBeers[], int numberOfBeers){
+	/*Declare local variables*/
+	int i;
+
+	/*Remove the beers*/
+	for(i = 0; i < numberOfBeers; i++){
+		beers[i].quantity -=orderedBeers[i];
+	}
+}
+
+/*Checks if input is an int*/
+int checkInt(char input[]){
+	int i;
+	/*If the first character isn't a number or the minus sign return 0*/
+	if((input[0] < MIN_INT || input[0] > MAX_INT) && input[0] != MINUS)
+		return 0;
+	/*If there is more than a minus sign return 0*/
+	else if(input[0] == MINUS)
+		if(strlen(input) == 1)
+			return 0;
+	/*If any character isn't a valid int return 0*/
+	for(i = 1; i < strlen(input); i++){
+		if(input[i] < MIN_INT || input[i] > MAX_INT)
+			return 0;
+	}
+	/*Otherwise return 1*/
+	return 1;
+}
+
+/*Checks if input is a valid beer id*/
+int checkID(char input[]){
+	int i;
+	if(strlen(input) != 7)
+		return 0;
+	/*If any character isn't a valid int return 0*/
+	for(i = 1; i < strlen(input); i++){
+		if(input[i] < MIN_INT || input[i] > MAX_INT)
+			return 0;
+	}
+	/*Otherwise return 1*/
+	return 1;
+}
+
+/*Prints an invoice*/
+void printOrder(Beer *beers, int numberOfBeers, int orderedBeers[]){
+	/*Declare local variables*/
+	int i;
+	double runningTotal;
+
+	/*Prints out a header for the invoice*/
+	printf("Beer\t\tQuantity Ordered\tPrice Per Unit\t\tSubtotal\n");
+
+	/*Print out each beers information*/
+	for(i = 0; i < numberOfBeers; i++){
+		if(orderedBeers[i]){
+			printf("%07ld\t\t%d\t\t\t%.2lf\t\t\t%.2lf\n", beers[i].id, orderedBeers[i], beers[i].price, orderedBeers[i] * beers[i].price);
+			runningTotal += orderedBeers[i] * beers[i].price;
+		}
+	}
+	/*Print out the total*/
+	printf("\t\t\t\t\t\t\t\tTotal\n");
+	printf("\t\t\t\t\t\t\t\t%.2lf\n", runningTotal);
+}
+
+/*Returns the index location of a beer in the array of beers + 1 or 0 if no beer with that id exists*/
+int findBeerByID(long id, Beer *beers, int numberOfBeers){
+	/*Declare local variables*/
+	int i;
+
+	/*Check every beer to see if it's ID is a match for the id being checked for*/
+	for(i = 0; i < numberOfBeers; i++){
+		if(beers[i].id == id)
+			/*Return a true value corresponding to the index*/
+			return i+1;
+	}
+
+	/*Return false*/
+	return 0;
+}
+
+void searchBeerByID(char input[], Beer *beers, int numberOfBeers){
+	/*Declare local variables*/
+	int test;
+
+	/*Get user input*/
+	do{
+		printf("Please enter a beer ID number\n");
+		fgets(input, BUFFER, stdin);
+		if(test = checkInt(input))
+			printf("Please enter an integer number");
+	}while(test);
+
+	if(test = findBeerByID(atol(input), beers, numberOfBeers))
+		printBeer(beers[test - 1]);
+	else{
+		printf("We do not have any beers with that ID number");
+	}
+
 }
