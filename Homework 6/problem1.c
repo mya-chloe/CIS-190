@@ -45,6 +45,7 @@ void printOrder(Beer *beers, int numberOfBeers, int orderedBeers[]);
 int findBeerByID(long id, Beer *beers, int numberOfBeers);
 void searchBeerByID(char input[], Beer *beers, int numberOfBeers);
 
+/*Main method*/
 int main(void){
 	/*Declare variables*/
 	int i;
@@ -58,7 +59,7 @@ int main(void){
 	/*Open the file*/
 	fp = fopen("beer.dat", "r");
 
-    /*Load the file*/
+  /*Load the file*/
 	numberOfBeers = loadFile(fp, &beers, input);
 
 	/*Close the file*/
@@ -141,7 +142,6 @@ void selectionSort(Beer * beers, int sorted, int numberOfBeers){
     if(sorted == (numberOfBeers - 1))
         return;
 
-		printf("%d%d", sorted, findSmallest(beers, sorted, numberOfBeers));
     /*Swap the smallest number with the first index that still needs to be sorted*/
     swap(beers + sorted, beers + findSmallest(beers, sorted, numberOfBeers));
 
@@ -170,6 +170,7 @@ void swap(Beer *first, Beer *second){
      *first = tempBeer;
 }
 
+/*aRuns a menu allowing the user to make as many choices as they want to*/
 void menu(char input[], Beer *beers, int numberOfBeers){
 	/*Declare local variables*/
 	int test = 0;
@@ -228,12 +229,13 @@ void takeOrder(char input[], Beer *beers, int numberOfBeers){
 
 	/*Continue looping as long as the user wants to add more beer to their order*/
 	while(finished == 1){
-		/*If this is not the first order get find out if the user wants another item*/
+		/*If this is not the first order find out if the user wants another item*/
 		if(!firstOrder){
 			printf("Please enter 1 to get another item or anything else to finish your order:\n");
 			fgets(input, BUFFER, stdin);
 			finished = atoi(input);
 		}
+		/*Otherwise you know the user wants an item and it is no longer the first order*/
 		else{
 			firstOrder = 0;
 			finished = 1;
@@ -244,59 +246,85 @@ void takeOrder(char input[], Beer *beers, int numberOfBeers){
 			do{
 				/*Get user input and strip the newline character*/
 				printf("Please enter the ID of the beer you would like to order,\nEnter the id of a beer you already added to your order to change your order\n");
+
+				/*Loop to verify the input is a valid id*/
+				do{
 				fgets(input, BUFFER, stdin);
 				input[strlen(input) - 1] = 0;
+				if(!checkID(input))
+					printf("Please enter a seven digit id\n");
+				}while(!checkID(input));
 
-				/*If the user entered an integer try and add the beer by ID*/
-				if(checkID(input)){
-					beerIDIndex = findBeerByID(atol(input), beers, numberOfBeers);
-					if(beerIDIndex){
-						if(beers[beerIDIndex - 1].quantity > 0){
-							printf("This beer costs $%.2lf per unit and has %d units remaining\n", beers[beerIDIndex - 1].price, beers[beerIDIndex - 1].quantity);
-							printf("Please enter the number of beers you would like to order\nEnter a number less than one to remove this beer from your order\n");
-							/*Get input from the user verifying that it is an integer*/
-							do{
-								fgets(input, BUFFER, stdin);
-								/*If it is not an integer print out a correction statement*/
-								if(integerTest = (checkInt(input)))
-									printf("Please enter an integer number\n");
-							}while(integerTest);
+				/*Find the index of the id*/
+				beerIDIndex = findBeerByID(atol(input), beers, numberOfBeers);
+				/*If a beer with that id currently exists*/
+				if(beerIDIndex){
+					/*If the beer is in stock*/
+					if(beers[beerIDIndex - 1].quantity > 0){
+						/*Tell the user how expensive this beer is and how much is left*/
+						printf("This beer costs $%.2lf per unit and has %d units remaining\n", beers[beerIDIndex - 1].price, beers[beerIDIndex - 1].quantity);
+						printf("Please enter the number of beers you would like to order\nEnter a number less than one to not order this beer\n");
+						/*Get input from the user verifying that it is an integer*/
+						do{
+							fgets(input, BUFFER, stdin);
+							/*If it is not an integer print out a correction statement*/
+							if(integerTest = (checkInt(input)))
+								printf("Please enter an integer number\n");
+						}while(integerTest);
 
-							quantity = atoi(input);
+						/*Convert the entered quantity to an integer*/
+						quantity = atoi(input);
 
-							if(quantity > 0){
-								/*If there is enough stock left to fill the order*/
-								if(beers[beerIDIndex - 1].quantity >= quantity){
-									/*Add this beer to the array of ordered beers*/
-									orderedBeers[beerIDIndex - 1] = atoi(input);
-								}else{
-									printf("We only have %d units of that beer left in stock. Please enter 1 to order all remaining units or anything else to not order this type of beer", beers[beerIDIndex - 1].quantity);
-									fgets(input, BUFFER, stdin);
-									if(atoi(input) == 1)
-										orderedBeers[beerIDIndex - 1] = beers[beerIDIndex - 1].quantity;
-								}
-							}else{
-								printf("This beer has been removed from your order\n");
-								orderedBeers[beerIDIndex - 1] = 0;
+						/*If a positive quantity was entered*/
+						if(quantity > 0){
+							/*If there is enough stock left to fill the order*/
+							if(beers[beerIDIndex - 1].quantity >= quantity){
+								/*Add this beer to the array of ordered beers*/
+								orderedBeers[beerIDIndex - 1] = atoi(input);
 							}
-						}else{
-							printf("%s is out of stock\n", beers[beerIDIndex].name);
+							/*If they want more beer than the remaining stock allow them to choose to order all the stock or none of it*/
+							else{
+								printf("We only have %d units of that beer left in stock.\nPlease enter 1 to order all remaining units or anything else to not order this type of beer", beers[beerIDIndex - 1].quantity);
+								fgets(input, BUFFER, stdin);
+								if(atoi(input) == 1)
+									orderedBeers[beerIDIndex - 1] = beers[beerIDIndex - 1].quantity;
+							}
 						}
-					}else{
-						printf("We do not have any beer with the entered index");
+						/*If a negative or 0 quantity was entered remove the beer from the order*/
+						else{
+							printf("This beer has been removed from your order\n");
+							orderedBeers[beerIDIndex - 1] = 0;
+						}
+					}
+					/*Otherwise tell the user the beer is out of stock*/
+					else{
+						printf("Selected beer is out of stock\n");
 					}
 				}
+				/*If the beer was not found inform the user*/
 				else{
-					printf("Please enter a seven digit id");
+					printf("We do not have any beer with the entered index\n");
 				}
+			/*If the entered id was invalid continue looping until a valid id was entered*/
 			}while(!beerIDIndex);
 		}
 		/*If the user doesn't want to add more beer get an order confirmation*/
 		else{
-			/*If the list is empty do not allow the user to check out*/
+			/*If the list is empty allow the user to choose whether to add an item or cancel their order*/
 			if(checkIfEmpty(orderedBeers, numberOfBeers)){
-				printf("You have no beers in your order\n");
-				finished = 1;
+				/*Get input from user on whether to add an item or cancel*/
+				printf("You have no beers in your order\nPlease enter one to add an item or anything else to cancel your order\n");
+				fgets(input, BUFFER, stdin);
+
+				/*If they want to add some items do not retrun to the menu*/
+				if(atoi(input) == 1){
+					finished = 1;
+				}
+				
+				/*If they want to cancel their order return to the menu*/
+				else{
+					finished = 0;
+				}
 			}
 			/*Otherwise get the order confirmation*/
 			else{
@@ -333,7 +361,6 @@ int checkIfEmpty(int orderedBeers[], int numberOfBeers){
 	/*If no elements were nonzero return 1*/
 	return 1;
 }
-
 
 /*Removes the ordered beers from the inventory*/
 void makeOrder(Beer *beers, int orderedBeers[], int numberOfBeers){
@@ -416,6 +443,7 @@ int findBeerByID(long id, Beer *beers, int numberOfBeers){
 	return 0;
 }
 
+/*Gets information on a beer and prints out information on it*/
 void searchBeerByID(char input[], Beer *beers, int numberOfBeers){
 	/*Declare local variables*/
 	int test;
@@ -424,14 +452,15 @@ void searchBeerByID(char input[], Beer *beers, int numberOfBeers){
 	do{
 		printf("Please enter a beer ID number\n");
 		fgets(input, BUFFER, stdin);
-		if(test = checkInt(input))
-			printf("Please enter an integer number");
+		input[strlen(input) - 1] = '\0';
+		if(test = !checkID(input))
+			printf("Please enter a seven digit ID\n");
 	}while(test);
 
 	if(test = findBeerByID(atol(input), beers, numberOfBeers))
 		printBeer(beers[test - 1]);
 	else{
-		printf("We do not have any beers with that ID number");
+		printf("We do not have any beers with that ID number\n");
 	}
 
 }
